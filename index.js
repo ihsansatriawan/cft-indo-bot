@@ -3,7 +3,7 @@ import 'dotenv/config'
 import TelegramBot from 'node-telegram-bot-api'
 import { storeData } from './src/store-data.js'
 
-const token = 'process.env.TOKEN_TELEGRAM';
+const token = process.env.TOKEN_TELEGRAM;
 
 
 const bot = new TelegramBot(token, {polling: true});

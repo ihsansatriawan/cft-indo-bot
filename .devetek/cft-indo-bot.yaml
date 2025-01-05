@@ -1,0 +1,23 @@
+# Cloud Devetek Standard Definition v0.0.1-alpha.0 Go Example
+version: v0.0.1-alpha.0
+
+setup:
+  language:
+    name: nodejs
+    version: v20.18.1
+
+build:
+  target:
+    ## -> Build app non docker (tar.gz)
+    machine: # exec sequentially
+      workdir: .
+      steps:
+        - name: "build application"
+          cmd:
+            - node -v
+            - npm install
+
+run:
+  name: cft-indo-bot
+  description: App CFT Bot
+  command: node index.js
