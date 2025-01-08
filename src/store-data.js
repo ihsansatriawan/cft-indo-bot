@@ -39,11 +39,8 @@ const storeData = async (msg) => {
 
 	const rawMessage = msg.text
 	const splitMessage = rawMessage.trim().split('\n');
-
 	const date = splitMessage[0]
-
 	const dataCash = splitMessage.slice(1)
-
 	const parsedData = dataCash.map(row => {
 		const match = row.match(/(.*?)(\d+[\.,]?\d*)$/);
 		if (match) {

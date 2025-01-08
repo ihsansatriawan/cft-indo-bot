@@ -16,14 +16,12 @@ bot.on('message', async (msg) => {
 
 	if (!allowUserName.includes(userName)) {
 		const errorMessage = `User ${userName} is not allowed to use this bot.`
-    console.log(errorMessage);
 		await bot.sendMessage(chatId, errorMessage);
     return;
   }
 
 	const resultStore = await storeData(msg)
 
-	console.log("resultStore: ", resultStore)
 
   for (const result of resultStore) {
     const { status, data } = result;
@@ -31,6 +29,5 @@ bot.on('message', async (msg) => {
     const { date, category, notes, source, price } = dataParse;
     const message = `Received your message with Status: ${status}\nDate: ${date}\nCategory: ${category}\nNotes: ${notes}\nSource: ${source}\nPrice: ${price}`;
     await bot.sendMessage(chatId, message);
-		return
   }
 });
