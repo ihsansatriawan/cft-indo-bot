@@ -1,3 +1,4 @@
+import { determineSheetID, initializeGsheet, determineRangeSheets } from './gsheet.js'
 
 const categories = [
 	"Menabung",
@@ -23,20 +24,27 @@ const determineCategory = (notes) => {
 			return category;
 		}
 	}
-	return "Lain lain tidak rutin"; 
+	return "Lain lain tidak rutin";
 };
 
 const determineSource = (notes) => {
 	for (const source of sources) {
-			if (notes.toLowerCase().includes(source.toLowerCase())) {
-					return source;
-			}
+		if (notes.toLowerCase().includes(source.toLowerCase())) {
+			return source;
+		}
 	}
 	return "CASH"; // Default source if no match is found
 };
 
-const storeData = async (msg) => {
+// Transform array of objects to 2D array
+const transformToSheetValues = (data) => {
+	const headers = Object.keys(data[0]);
+	const values = data.map(obj => headers.map(header => obj[header]));
+	return [...values];
+};
 
+const storeData = async (msg, responseID) => {
+	const userName = msg.chat.username;
 	const rawMessage = msg.text
 	const splitMessage = rawMessage.trim().split('\n');
 	const date = splitMessage[0]
@@ -59,37 +67,51 @@ const storeData = async (msg) => {
 		return null;
 	}).filter(item => item !== null);
 
-	const resultStoreData = []
+	//////// GSHEET CALL
 
-	// Make API call for each index in parsedData
-	for (const data of parsedData) {
-		const bodyReq = JSON.stringify(data)
-		try {
-			const response = await fetch(process.env.URL_MAKE, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: bodyReq
-			});
-			const result = response.statusText;
-			const responseData = {
-				"status": result,
-				"data": bodyReq
-			}
-			console.log('API call result:', responseData);
-			resultStoreData.push(responseData)
-		} catch (error) {
-			console.error('Error making API call:', error);
-			const responseData = {
-				"status": error,
-				"data": bodyReq
-			}
-			resultStoreData.push(responseData)
+	try {
+		const sheets = await initializeGsheet()
+
+		// Define your spreadsheet details
+		const spreadsheetId = determineSheetID(userName)
+		const valuesGsheet = transformToSheetValues(parsedData);
+		const rangeGsheet = determineRangeSheets(userName)
+
+		const requestBody = {
+			range: rangeGsheet,
+			values: valuesGsheet,
+		};
+
+		const response = await sheets.spreadsheets.values.append({
+			spreadsheetId,
+			range: rangeGsheet,
+			valueInputOption: 'USER_ENTERED', // Input mode
+			resource: requestBody,
+		});
+
+		console.log(`${response.data.updates.updatedRows} row updated. responseID: ${responseID}. userName: ${userName}`);
+		//TODO: need validate count parsedData === updatedRows
+		const responseData = {
+			status: "SUCCESS",
+			data: parsedData
 		}
+
+		// console.log("responseData: ", responseData)
+
+		return responseData
+	} catch (error) {
+		const errorMessage = `Error appending data to Google Sheets ${error.message} | responseID: ${responseID} | userName: ${userName}`;
+		console.error(errorMessage);
+
+		const responseData = {
+			status: "FAILED",
+			data: parsedData
+		}
+
+		return responseData
 	}
 
-	return resultStoreData
+	//////// GSHEET CALL
 }
 
 export {
