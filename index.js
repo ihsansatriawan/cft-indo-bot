@@ -3,6 +3,10 @@ import TelegramBot from 'node-telegram-bot-api';
 import { storeData } from './src/store-data.js';
 import { v4 as uuidv4 } from 'uuid';
 
+import Redis from "ioredis"
+
+const client = new Redis(process.env.URL_REDIS);
+
 const token = process.env.TOKEN_TELEGRAM;
 const bot = new TelegramBot(token, { polling: true });
 const allowUserName = ['ihsansatriawan', 'mutirowahani'];
@@ -19,6 +23,11 @@ const handleIncomingMessage = async (msg) => {
     await bot.sendMessage(chatId, errorMessage);
     return;
   }
+
+  //RPS Store data
+  const key = `rps:${userName}:${Math.floor(Date.now() / 1000)}`; // One key per second
+  await client.incr(key);
+  await client.expire(key, 86400); // Expire keys after 24 hours (86400 seconds)
 
   try {
     const resultStore = await storeData(msg, responseID);
