@@ -4,7 +4,6 @@ import { storeData } from './src/store-data.js';
 import { v4 as uuidv4 } from 'uuid';
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
-import Redis from "ioredis"
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -14,8 +13,6 @@ Sentry.init({
 
   profilesSampleRate: 1.0,
 });
-
-const client = new Redis(process.env.URL_REDIS);
 
 const token = process.env.TOKEN_TELEGRAM;
 const bot = new TelegramBot(token, { polling: true });
@@ -43,11 +40,6 @@ const handleIncomingMessage = async (msg) => {
   Sentry.setUser({
     username: userName,
   });
-
-  //RPS Store data
-  const key = `rps:${userName}:${Math.floor(Date.now() / 1000)}`; // One key per second
-  await client.incr(key);
-  await client.expire(key, 86400); // Expire keys after 24 hours (86400 seconds)
 
   try {
     const resultStore = await storeData(msg, responseID);
