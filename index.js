@@ -2,10 +2,17 @@ import 'dotenv/config';
 import TelegramBot from 'node-telegram-bot-api';
 import { storeData } from './src/store-data.js';
 import { v4 as uuidv4 } from 'uuid';
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
-import Redis from "ioredis"
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [nodeProfilingIntegration()],
+  // Tracing
+  tracesSampleRate: 1.0, //  Capture 100% of the transactions
 
-const client = new Redis(process.env.URL_REDIS);
+  profilesSampleRate: 1.0,
+});
 
 const token = process.env.TOKEN_TELEGRAM;
 const bot = new TelegramBot(token, { polling: true });
@@ -14,6 +21,11 @@ const allowUserName = ['ihsansatriawan', 'mutirowahani'];
 const isUserAllowed = (userName) => allowUserName.includes(userName);
 
 const handleIncomingMessage = async (msg) => {
+  const transactionIncoming = Sentry.startInactiveSpan({ 
+    name: "Receive Telegram Message",
+    op: 'telegram_message',
+  });
+
   const responseID = uuidv4(); // Generate a unique response ID
   const chatId = msg.chat.id;
   const userName = msg.chat.username;
@@ -21,13 +33,13 @@ const handleIncomingMessage = async (msg) => {
   if (!isUserAllowed(userName)) {
     const errorMessage = `User ${userName} is not allowed to use this bot.`;
     await bot.sendMessage(chatId, errorMessage);
+    transactionIncoming.end();
     return;
   }
 
-  //RPS Store data
-  const key = `rps:${userName}:${Math.floor(Date.now() / 1000)}`; // One key per second
-  await client.incr(key);
-  await client.expire(key, 86400); // Expire keys after 24 hours (86400 seconds)
+  Sentry.setUser({
+    username: userName,
+  });
 
   try {
     const resultStore = await storeData(msg, responseID);
@@ -41,6 +53,8 @@ const handleIncomingMessage = async (msg) => {
     console.error('Error processing message:', error);
     console.error('RsponseID: ', responseID);
     await bot.sendMessage(chatId, `An error occurred while processing your message. \n ResponseID: ${responseID}`);
+  } finally {
+    transactionIncoming.end();
   }
 };
 
