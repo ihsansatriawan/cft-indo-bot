@@ -15,6 +15,7 @@ const categories = [
 const sources = [
 	"CC BCA",
 	"CC BRI",
+	"Kartu Kredit",
 	"CASH"
 ];
 
