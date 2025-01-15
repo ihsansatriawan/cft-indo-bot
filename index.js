@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import TelegramBot from 'node-telegram-bot-api';
 import { storeData } from './src/store-data.js';
+import { RANGE_SHEET } from './src/constants.js';
 import { v4 as uuidv4 } from 'uuid';
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
@@ -16,7 +17,8 @@ Sentry.init({
 
 const token = process.env.TOKEN_TELEGRAM;
 const bot = new TelegramBot(token, { polling: true });
-const allowUserName = ['ihsansatriawan', 'mutirowahani'];
+// const allowUserName = ['ihsansatriawan', 'mutirowahani'];
+const allowUserName = Object.keys(RANGE_SHEET);
 
 const isUserAllowed = (userName) => allowUserName.includes(userName);
 
