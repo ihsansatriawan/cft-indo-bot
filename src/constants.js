@@ -8,6 +8,7 @@ const USER_SHEET_IDS = {
 	maylita: '1qpJd1sextBBxCB4JM2djIwelGCmklx9EVLZu7FJLeaI',
 	zharaaac: '1Ndbo2W2sc6c2j-J2XhGqgABjb3SjWPez5lglBXUwl2E',
 	Faithfulpi: '1fX3exjQCvwmvrTuo7P20S4NiwQ4dBB50-gTzwmSQgcw',
+	rujak_manis: '1AoEytRRYNH7h2RBtml2DchXi2_Pz7G7gNYaEV5Jy_T0',
 };
 
 const RANGE_SHEET = {
@@ -16,6 +17,7 @@ const RANGE_SHEET = {
 	maylita: 'DETAIL!A:F',
 	zharaaac: 'DETAIL!A:F',
 	Faithfulpi: 'DETAIL!A:F',
+	rujak_manis: 'DETAIL!A:F',
 
 	// ihsansatriawan: 'TEST_DATA!A:C',
 }
